@@ -42,4 +42,6 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           with:
             assignees: ${{ github.event.inputs.name }}
+            filename: .github/some-other-template.md
+            
 
