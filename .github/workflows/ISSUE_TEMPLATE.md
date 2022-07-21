@@ -1,6 +1,6 @@
 ---
-title: Someone just pushed
-assignees: JasonEtco, matchai
+title: Generated issue
+assignees: AndrejKiri
 labels: bug, enhancement
 ---
-Someone just pushed, oh no! Here's who did it: {{ payload.sender.login }}.Tr ell
+Hello world!
