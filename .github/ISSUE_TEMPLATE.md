@@ -1,6 +1,6 @@
 ---
 title: Generated issue
-assignees: ${{ github.event.inputs.name }}
+assignees: {{ env.ASSIGNEE }}
 labels: bug, enhancement
 ---
 Hello world!
