@@ -41,5 +41,5 @@ jobs:
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           with:
-            assignees: AndrejKiri
+            assignees: ${{ github.event.inputs.name }}
 
