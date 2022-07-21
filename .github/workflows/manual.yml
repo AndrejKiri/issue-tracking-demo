@@ -40,4 +40,5 @@ jobs:
         - uses: JasonEtco/create-an-issue@v2
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ASSIGNEE: ${{ github.event.inputs.name }}
 
