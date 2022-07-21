@@ -33,7 +33,7 @@ jobs:
     - name: Send greeting
       run: echo "Hello ${{ github.event.inputs.name }}"
       
-  stuff:
+  issue1:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v2
@@ -43,5 +43,16 @@ jobs:
           with:
             assignees: ${{ github.event.inputs.name }}
             filename: .github/explore1.md
+            
+  issue2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          assignees: ${{ github.event.inputs.name }}
+          filename: .github/meet4.md
             
 
