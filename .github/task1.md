@@ -1,5 +1,5 @@
 ---
-title: Start exploring the products
+title: Tool and account setup
 labels: tasks, week-1
 ---
 
