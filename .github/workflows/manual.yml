@@ -3,7 +3,7 @@ name: Create onboarding issues
 on:
   # This workflow is manually triggered by pressing a button in the UI
   workflow_dispatch:
-    # A GitHub handle of the new team member should be inputed to the workflow so all the issues are assigned to them automatically.
+    # Add GitHub handle of the new team member to assign issues automatically.
     inputs:
       name:
         # Input title
@@ -38,6 +38,37 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           assignees: ${{ github.event.inputs.name }}
+          filename: .github/learning1
+            
+  issue3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          assignees: ${{ github.event.inputs.name }}
           filename: .github/meet4.md
             
-
+  issue4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          assignees: ${{ github.event.inputs.name }}
+          filename: .github/task1.md
+          
+  issue5:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          assignees: ${{ github.event.inputs.name }}
+          filename: .github/task2.md
