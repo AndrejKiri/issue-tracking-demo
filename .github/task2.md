@@ -1,5 +1,5 @@
 ---
-title: Start exploring the products
+title: Get familiar with 15-5
 labels: tasks, week-2
 ---
 
