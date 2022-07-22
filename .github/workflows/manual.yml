@@ -1,18 +1,13 @@
-# This is a basic workflow that is manually triggered
+name: Create onboarding issues
 
-name: Manual workflow with issue
-
-# Controls when the action will run. Workflow runs when manually triggered using the UI
-# or API.
 on:
+  # This workflow is manually triggered by pressing a button in the UI
   workflow_dispatch:
-    # Inputs the workflow accepts.
+    # A GitHub handle of the new team member should be inputed to the workflow so all the issues are assigned to them automatically.
     inputs:
       name:
-        # Friendly description to be shown in the UI instead of 'name'
-        description: 'Person to greet'
-        # Default value if no value is explicitly provided
-        default: 'World'
+        # Input title
+        description: "New team member's GitHub handle"
         # Input has to be provided for the workflow to run
         required: true
         
@@ -20,19 +15,9 @@ permissions:
   contents: read
   issues: write 
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# Each job bellow will create a new issue from a template
 jobs:
-  # This workflow contains a single job called "greet"
-  greet:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-    # Runs a single command using the runners shell
-    - name: Send greeting
-      run: echo "Hello ${{ github.event.inputs.name }}"
-      
+   
   issue1:
       runs-on: ubuntu-latest
       steps:
