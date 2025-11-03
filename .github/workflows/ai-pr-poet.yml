@@ -1,4 +1,4 @@
-name: AI PR Title Poet
+name: AI PR Title Poet (API)
 
 on:
   pull_request:
@@ -25,7 +25,6 @@ jobs:
       - name: Generate poem from PR title
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           python - << 'PY'
@@ -36,11 +35,11 @@ jobs:
           client = OpenAI()
 
           system = "You are a playful poet. Write a short, witty poem inspired by a PR title."
-          user = f"""PR title: "{pr_title}"
+          user = f'''PR title: "{pr_title}"
 
           Write a tiny poem (2–4 short lines), light and friendly.
           Avoid code blocks and hashtags. Keep it under 60 words.
-          """
+          '''
 
           resp = client.chat.completions.create(
               model="gpt-4o-mini",
@@ -63,12 +62,15 @@ jobs:
               f.write(body)
           PY
 
-      - name: Post PR comment
+      - name: Post PR comment via REST API
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          gh pr comment "$PR_NUMBER" \
-            --repo "$GITHUB_REPOSITORY" \
-            --body-file ai_poem_comment.md
+          BODY=$(cat ai_poem_comment.md | jq -Rs .)
+          curl -sS -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments \
+            -d "{\"body\": ${BODY}}"
