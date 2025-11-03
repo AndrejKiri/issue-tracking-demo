@@ -10,10 +10,8 @@ permissions:
 jobs:
   poet:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4   # ✅ this line is essential
 
+    steps:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -47,8 +45,8 @@ jobs:
           resp = client.chat.completions.create(
               model="gpt-4o-mini",
               messages=[
-                  {"role":"system","content":system},
-                  {"role":"user","content":user},
+                  {"role": "system", "content": system},
+                  {"role": "user", "content": user},
               ],
           )
           poem = resp.choices[0].message.content.strip()
@@ -61,13 +59,16 @@ jobs:
           <sub>(based on the PR title)</sub>
           """)
 
-          with open("ai_poem_comment.md","w", encoding="utf-8") as f:
+          with open("ai_poem_comment.md", "w", encoding="utf-8") as f:
               f.write(body)
           PY
 
       - name: Post PR comment
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          gh pr comment "$PR_NUMBER" --body-file ai_poem_comment.md
+          gh pr comment "$PR_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --body-file ai_poem_comment.md
