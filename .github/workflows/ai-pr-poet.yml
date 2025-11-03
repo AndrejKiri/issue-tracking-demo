@@ -1,0 +1,70 @@
+name: AI PR Title Poet
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  poet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install OpenAI client
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai
+
+      - name: Generate poem from PR title
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          python - << 'PY'
+          import os, textwrap
+          from openai import OpenAI
+
+          pr_title = os.environ["PR_TITLE"]
+          client = OpenAI()
+
+          system = "You are a playful poet. Write a short, witty poem inspired by a PR title."
+          user = f"""PR title: "{pr_title}"
+
+          Write a tiny poem (2–4 short lines), light and friendly.
+          Avoid code blocks and hashtags. Keep it under 60 words.
+          """
+
+          resp = client.chat.completions.create(
+              model="gpt-4o-mini",
+              messages=[
+                  {"role":"system","content":system},
+                  {"role":"user","content":user},
+              ],
+          )
+          poem = resp.choices[0].message.content.strip()
+
+          body = textwrap.dedent(f"""\
+          ### ✍️ AI PR Title Poem
+
+          {poem}
+
+          <sub>(based on the PR title)</sub>
+          """)
+
+          with open("ai_poem_comment.md","w", encoding="utf-8") as f:
+              f.write(body)
+          PY
+
+      - name: Post PR comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body-file ai_poem_comment.md
