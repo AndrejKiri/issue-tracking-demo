@@ -27,18 +27,21 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          python - << 'PY'
+          python - <<'PY'
           import os, textwrap
           from openai import OpenAI
 
           pr_title = os.environ["PR_TITLE"]
           client = OpenAI()
 
+          system = "You are a playful poet. Write a short, witty poem inspired by a PR title."
+          user = f'PR title: "{pr_title}"\n\nWrite a tiny poem (2–4 short lines), light and friendly. Avoid code blocks and hashtags. Keep it under 60 words.'
+
           resp = client.chat.completions.create(
               model="gpt-4o-mini",
               messages=[
-                  {"role": "system", "content": "You are a playful poet. Write a short, witty poem inspired by a PR title."},
-                  {"role": "user", "content": f'PR title: "{pr_title}"\n\nWrite a tiny poem (2–4 short lines), light and friendly. Avoid code blocks and hashtags. Keep it under 60 words.'},
+                  {"role": "system", "content": system},
+                  {"role": "user", "content": user},
               ],
           )
           poem = resp.choices[0].message.content.strip()
@@ -55,7 +58,6 @@ jobs:
               f.write(body)
           PY
 
-      # ---- Diagnostic step (no .git needed) ----
       - name: Diagnostic: verify gh access and context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -67,10 +69,10 @@ jobs:
           echo "PR Number: $PR_NUMBER"
           echo
           echo "🔍 Checking gh CLI..."
-          gh --version || { echo "❌ gh CLI not available!"; exit 1; }
+          gh --version || { echo "gh CLI not available"; exit 1; }
           echo
           echo "🔍 Verifying GH authentication..."
-          gh auth status || { echo "❌ Authentication failed!"; exit 1; }
+          gh auth status || { echo "Authentication failed"; exit 1; }
           echo
           echo "🔍 Fetching PR details via API..."
           gh pr view "$PR_NUMBER" \
@@ -84,9 +86,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          set -euo pipefail
-          test -s ai_poem_comment.md || { echo "ai_poem_comment.md is missing"; exit 1; }
-          echo "Posting to $GITHUB_REPOSITORY PR #$PR_NUMBER"
+          test -s ai_poem_comment.md || { echo "ai_poem_comment.md missing"; exit 1; }
           gh pr comment "$PR_NUMBER" \
             --repo "$GITHUB_REPOSITORY" \
             --body-file ai_poem_comment.md
