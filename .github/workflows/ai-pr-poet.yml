@@ -11,6 +11,9 @@ jobs:
   poet:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4   # ✅ this line is essential
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
