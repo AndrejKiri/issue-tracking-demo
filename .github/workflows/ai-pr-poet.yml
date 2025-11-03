@@ -28,14 +28,15 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           python - <<'PY'
-          import os, textwrap
+          import os
+          import textwrap
           from openai import OpenAI
 
           pr_title = os.environ["PR_TITLE"]
           client = OpenAI()
 
           system = "You are a playful poet. Write a short, witty poem inspired by a PR title."
-          user = f'PR title: "{pr_title}"\n\nWrite a tiny poem (2–4 short lines), light and friendly. Avoid code blocks and hashtags. Keep it under 60 words.'
+          user = f'PR title: "{pr_title}"\n\nWrite a tiny poem (2-4 short lines), light and friendly. Avoid code blocks and hashtags. Keep it under 60 words.'
 
           resp = client.chat.completions.create(
               model="gpt-4o-mini",
@@ -46,39 +47,30 @@ jobs:
           )
           poem = resp.choices[0].message.content.strip()
 
-          body = textwrap.dedent(f"""\
-          ### ✍️ AI PR Title Poem
+          body = textwrap.dedent(""""\
+          ### AI PR Title Poem
 
-          {poem}
+          {} 
 
-          <sub>(based on the PR title)</sub>
-          """)
+          (based on the PR title)
+          """.format(poem))
 
           with open("ai_poem_comment.md", "w", encoding="utf-8") as f:
               f.write(body)
           PY
 
-      - name: Diagnostic: verify gh access and context
+      - name: Diagnostic verify gh access and context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          echo "🔍 Checking environment..."
+          echo "Checking environment..."
           echo "Repo: $GITHUB_REPOSITORY"
           echo "PR Number: $PR_NUMBER"
-          echo
-          echo "🔍 Checking gh CLI..."
-          gh --version || { echo "gh CLI not available"; exit 1; }
-          echo
-          echo "🔍 Verifying GH authentication..."
-          gh auth status || { echo "Authentication failed"; exit 1; }
-          echo
-          echo "🔍 Fetching PR details via API..."
-          gh pr view "$PR_NUMBER" \
-            --repo "$GITHUB_REPOSITORY" \
-            --json number,title,author,headRefName,baseRefName,state \
-            --jq '.'
+          gh --version
+          gh auth status
+          gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json number,title,state --jq '.'
 
       - name: Post PR comment (no checkout required)
         env:
@@ -87,6 +79,4 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           test -s ai_poem_comment.md || { echo "ai_poem_comment.md missing"; exit 1; }
-          gh pr comment "$PR_NUMBER" \
-            --repo "$GITHUB_REPOSITORY" \
-            --body-file ai_poem_comment.md
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file ai_poem_comment.md
