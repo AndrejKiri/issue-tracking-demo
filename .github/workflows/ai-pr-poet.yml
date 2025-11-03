@@ -1,4 +1,4 @@
-name: AI PR Title Poet (API)
+name: AI PR Title Poet
 
 on:
   pull_request:
@@ -62,15 +62,38 @@ jobs:
               f.write(body)
           PY
 
-      - name: Post PR comment via REST API
+      # ---- Diagnostic step (no .git needed) ----
+      - name: Diagnostic: verify gh access and context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          BODY=$(cat ai_poem_comment.md | jq -Rs .)
-          curl -sS -X POST \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments \
-            -d "{\"body\": ${BODY}}"
+          echo "🔍 Checking environment..."
+          echo "Repo: $GITHUB_REPOSITORY"
+          echo "PR Number: $PR_NUMBER"
+          echo
+
+          echo "🔍 Checking gh CLI..."
+          gh --version || { echo "❌ gh CLI not available!"; exit 1; }
+
+          echo
+          echo "🔍 Verifying GH authentication..."
+          gh auth status || { echo "❌ Authentication failed!"; exit 1; }
+
+          echo
+          echo "🔍 Fetching PR details via API..."
+          gh pr view "$PR_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --json number,title,author,headRefName,baseRefName,state \
+            --jq '.'
+
+      - name: Post PR comment (no checkout required)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$PR_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --body-file ai_poem_comment.md
