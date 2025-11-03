@@ -1,0 +1,50 @@
+name: AI character change counter
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  count-chars:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute unified diff vs base
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          # Three-dot compares merge base of base..head
+          git diff --unified=0 --no-color origin/${{ github.base_ref }}...HEAD > diff.patch
+          # Hard cap to keep payload reasonable (adjust as you like)
+          head -c 200000 diff.patch > diff.capped.patch
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai
+
+      - name: Run AI character counter
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python scripts/ai_char_count.py diff.capped.patch $PR_NUMBER
+
+      - name: Post PR comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body-file ai_char_count_comment.md
